@@ -8,7 +8,7 @@
 class CRefCounter
 {
 public:
-	CRefCounter() { i_count; }
+	CRefCounter() { i_count = 0; }
 	int iAdd() { return(++i_count); }
 	int iDec() { return(--i_count); };
 	int iGet() { return(i_count); }
@@ -33,7 +33,10 @@ public:
 	}//CMySmartPointer(const CMySmartPointer &pcOther)
 
 	~CMySmartPointer() {
-		v_cnt_decrement();
+		if (pc_counter->iDec() == 0) {
+			delete pc_pointer;
+			delete pc_counter;
+		}//if (pc_counter->iDec())
 	}//~CMySmartPointer()
 
 	POINTER_TYPE &operator*() {
@@ -44,25 +47,28 @@ public:
 		return (pc_pointer);
 	}
 
-	CMySmartPointer &operator=(const CMySmartPointer<POINTER_TYPE> &pcOther) {
-		v_cnt_decrement();
+	CMySmartPointer<POINTER_TYPE> &operator=(const CMySmartPointer<POINTER_TYPE> &pcOther) {
+		if (this == &pcOther) return (*this);
+
+		if (pc_counter->iDec() == 0) {
+			delete pc_pointer;
+			delete pc_counter;
+		}//if (pc_counter->iDec())
+
 		pc_pointer = pcOther.pc_pointer;
 		pc_counter = pcOther.pc_counter;
-		pc_counter->iAdd();
 
 		return (*this);
 	}
+
+//	CRefCounter *getCounter(){
+//		return pc_counter;
+//	}
 
 private:
 	CRefCounter *pc_counter;
 	POINTER_TYPE *pc_pointer;
 
-	void v_cnt_decrement(){
-		if (pc_counter->iDec() == 0) {
-			delete pc_pointer;
-			delete pc_counter;
-		}//if (pc_counter->iDec())
-	}
 };
 
 #endif //TEP_ZAD_5_CMYSMARTPOINTER_H
